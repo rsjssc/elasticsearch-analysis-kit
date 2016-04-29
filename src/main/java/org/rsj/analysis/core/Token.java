@@ -1,5 +1,6 @@
 package org.rsj.analysis.core;
 
+
 /**
  * 分词得到的基本词元抽象 token
  * @author kit
@@ -69,5 +70,24 @@ public class Token {
 		strBuilder.append(" : ").append(this.text).append(" : \t");
 		strBuilder.append(this.tokenType);
 		return strBuilder.toString();
+	}
+	
+	public int compareTo(Token other) {
+		//起始位置优先
+        if(this.begin < other.getBegin()){
+            return -1;
+        }else if(this.begin == other.getBegin()){
+        	//词元长度优先
+        	if(this.length > other.getLength()){
+        		return -1;
+        	}else if(this.length == other.getLength()){
+        		return 0;
+        	}else {//this.length < other.getLength()
+        		return 1;
+        	}
+        	
+        }else{//this.begin > other.getBegin()
+        	return 1;
+        }
 	}
 }

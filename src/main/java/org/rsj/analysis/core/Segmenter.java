@@ -13,7 +13,7 @@ public class Segmenter {
 	private Reader input;
 	private AnalysisContext context;
 	//分词歧义裁决器
-//		private IKArbitrator arbitrator;
+	private Arbitrator arbitrator;
 	
 	/*
 	 * 当letterStart > -1 时，标识当前的分词器正在处理英文和数字字符
@@ -31,10 +31,8 @@ public class Segmenter {
 	public Segmenter(Reader input){
 		this.input = input;
         this.context = new AnalysisContext();
-		//加载歧义裁决器
-//			this.arbitrator = new IKArbitrator();
-//		Arrays.sort(Letter_Connector);
-//		Arrays.sort(Num_Connector);
+//		加载歧义裁决器
+		this.arbitrator = new Arbitrator();
 		letterStart = -1;letterEnd = -1;
 		lastDictToken = null;
 	}
@@ -77,25 +75,23 @@ public class Segmenter {
 				
 			}
 			System.out.println("before process arbitrator!let's see the orgTokens:");
-			System.out.println(context.getOrgTokens().size());
-			for (Token token : context.getOrgTokens()) {
-				token.setText(String.valueOf(context.getSegmentBuff() , token.getBegin() , token.getLength()));
-				System.out.println(token.toString());
+			System.out.println(context.getOrgListsWhitConflict().size());
+			for (ConflictTokensList conflictList : context.getOrgListsWhitConflict()) {
+				System.out.println("this is a new conflict list");
+				for (Token token : conflictList.getConflictList()) {
+					token.setText(String.valueOf(context.getSegmentBuff() , token.getBegin() , token.getLength()));
+					System.out.println(token.toString());
+				}
+				
 			}
-			LinkedList<Token> tokens = new LinkedList<Token>();
-			context.setOrgTokens(tokens);
-//			System.out.println("and the real result:");
-//			System.out.println(context.getResults().size());
+			//对分词进行歧义处理
+			this.arbitrator.process(context);
+			
+//			System.out.println("/n/nafter process arbitrator!!!let's see the orgTokens:");
+//			System.out.println(context.getOrgListsWhitConflict().size());
+			System.out.println("and the real result:");
+			System.out.println(context.getResults().size());
 //			context.printlnAllResult();
-//				//对分词进行歧义处理
-//				this.arbitrator.process(context, useSmart);
-//				
-//				System.out.println("/n/nafter process arbitrator!!!let's see the orgLexemes:");
-//				System.out.println(context.getOrgLexemes().size());
-//				context.getOrgLexemes().printlnAllCell();
-//				System.out.println("and the real result:");
-//				System.out.println(context.getResults().size());
-//				context.printlnAllResult();
 //				
 //				//将分词结果输出到结果集，并处理未切分的单个CJK字符
 //				context.outputToResult();
@@ -136,7 +132,7 @@ public class Segmenter {
 				}
 				//将结果加入
 				for (Token token : tokensForThisChar) {
-					context.addToken(token);
+					context.addTokenToListWhitConflict(token);
 				}
 				lastDictToken = tokensForThisChar.getFirst();
 			}else if(lastDictToken == null || (context.getCursor() > lastDictToken.getBegin() + lastDictToken.getLength())){//不是字典中的词，且当前指针超过上一个匹配上字典中的词的最短词的结尾，用analyzeLetter处理英文字符和阿拉伯数字
@@ -173,9 +169,9 @@ public class Segmenter {
 	
 	public void outPutLetterOrArabic() {
 		if(!isPureAbaric)
-			context.addToken(new Token(context.getBufferOffset() , this.letterStart , this.letterEnd - this.letterStart + 1 , Token.LETTER));
+			context.addTokenToListWhitConflict(new Token(context.getBufferOffset() , this.letterStart , this.letterEnd - this.letterStart + 1 , Token.LETTER));
 		else
-			context.addToken(new Token(context.getBufferOffset() , this.letterStart , this.letterEnd - this.letterStart + 1 , Token.ARABIC));
+			context.addTokenToListWhitConflict(new Token(context.getBufferOffset() , this.letterStart , this.letterEnd - this.letterStart + 1 , Token.ARABIC));
 		this.letterStart = -1;
 		this.letterEnd = -1;
 	}

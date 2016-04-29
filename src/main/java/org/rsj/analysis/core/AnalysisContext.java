@@ -39,7 +39,7 @@ public class AnalysisContext {
 	    private boolean buffLocker;
 	    
 	    //原始分词结果集合，未经歧义处理
-	    private List<Token> orgTokens;    
+	    private LinkedList<ConflictTokensList> orgListsWhitConflict;    
 	    //LexemePath位置索引表
 //	    private Map<Integer , LexemePath> pathMap;    
 //	             最终分词结果集
@@ -57,7 +57,7 @@ public class AnalysisContext {
 	    	this.segmentBuff = new char[BUFF_SIZE];
 	    	this.charTypes = new int[BUFF_SIZE];
 	    	this.buffLocker = false;
-	    	this.orgTokens = new ArrayList<Token>();
+	    	this.orgListsWhitConflict = new LinkedList<ConflictTokensList>();
 	    	this.results = new LinkedList<Token>();
 	    }
 	    
@@ -109,7 +109,8 @@ public class AnalysisContext {
 	    	//重置当前指针
 	    	this.cursor = 0;
 	    	System.out.println("this time read in word count: "+ readCount);
-	    	this.orgTokens = new ArrayList<Token>();
+	    	//不用重置ConflictTokensList因为在歧义处理的时候需要将这个List中所有的冲突List弹出放到results里
+//	    	this.orgTokens = new ArrayList<Token>();
 	    	return readCount;
 	    }
 
@@ -138,29 +139,6 @@ public class AnalysisContext {
 	    	}
 	    }
 		
-//	    /**
-//	     * 锁定buffer不能读入新的数据
-//	     * @param segmenterName
-//	     */
-//	    public void lockBuffer(){
-//			this.buffLocker = true;
-//		}
-//		
-//		/**
-//		 * 释放对segmentBuff的占用
-//		 * @param segmenterName
-//		 */
-//		public void unlockBuffer(){
-//			this.buffLocker = false;
-//		}
-//		
-//		/**
-//		 * @return boolean 缓冲去是否被锁定
-//		 */
-//		boolean isBufferLocked(){
-//			return this.buffLocker;
-//		}
-
 		/**
 		 * 判断当前segmentBuff是否已经用完
 		 * 当前执针cursor移至segmentBuff末端this.available - 1
@@ -184,7 +162,6 @@ public class AnalysisContext {
 			return this.available == BUFF_SIZE 
 				&& this.cursor < this.available - 1   
 				&& this.cursor  > this.available - BUFF_EXHAUST_CRITICAL
-//				&& !this.isBufferLocked();
 				&& (this.getCurrentCharType() == CharacterUtil.CHAR_USELESS && !(CharacterUtil.isLetterConnector(this.getCurrentChar()) || CharacterUtil.isNumConnector(this.getCurrentChar())));
 		}
 		
@@ -199,8 +176,14 @@ public class AnalysisContext {
 		 * 向分词结果集添加词元
 		 * @param lexeme
 		 */
-		void addToken(Token token){
-			this.orgTokens.add(token);
+		void addTokenToListWhitConflict(Token token){
+			ConflictTokensList lastList = orgListsWhitConflict.peekLast();
+			if(lastList != null && lastList.addConflictToken(token)) {
+				
+			}else {
+				ConflictTokensList newTokenList = new ConflictTokensList(token);
+				orgListsWhitConflict.add(newTokenList);
+			}
 		}
 		
 //		/**
@@ -219,16 +202,26 @@ public class AnalysisContext {
 		 * 返回原始分词结果
 		 * @return
 		 */
-		public List<Token> getOrgTokens(){
-			return this.orgTokens;
+		public LinkedList<ConflictTokensList> getOrgListsWhitConflict(){
+			return this.orgListsWhitConflict;
 		}
-		/**
-		 * 清空原始分词结果
-		 * @return
-		 */
-		public void setOrgTokens(LinkedList<Token> tokens){
-			this.orgTokens = tokens;
+		
+		//无歧义的结果加入results
+		public void addToResults(ConflictTokensList conflictList) {
+			System.out.println("add no arbitrate list to results");
+//			if(resultIndex < conflictList)
+			for (Token token : conflictList.getConflictList()) {
+				results.add(token);
+			}
+			
 		}
+//		/**
+//		 * 清空原始分词结果
+//		 * @return
+//		 */
+//		public void setOrgTokens(LinkedList<Token> tokens){
+//			this.orgListWhitConflict = tokens;
+//		}
 		
 //		/**
 //		 * 推送分词结果到结果集合
@@ -301,7 +294,7 @@ public class AnalysisContext {
 		 */
 		void reset(){		
 			this.buffLocker = false;
-	        this.orgTokens = new ArrayList<Token>();
+	        this.orgListsWhitConflict = new LinkedList<ConflictTokensList>();
 	        this.available =0;
 	        this.buffOffset = 0;
 	    	this.charTypes = new int[BUFF_SIZE];

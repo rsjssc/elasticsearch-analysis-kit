@@ -40,11 +40,13 @@ public class Dictionary {
 			this.Words = new ArrayList<String>();
 			readFromDictFile(staticDictPath);
 //			readFromDictFile(dynamicDictPath);
-			Collections.sort(Words);
 			long start = System.currentTimeMillis();
+			Collections.sort(Words);
+			System.out.println("sort time: "+ (System.currentTimeMillis() - start));
+			start = System.currentTimeMillis();
 			dict = new DoubleArrayTrie();
 			dict.build(Words);
-			System.out.println(System.currentTimeMillis() - start);
+			System.out.println("build time: "+ (System.currentTimeMillis() - start));
 		}else {//加载停止词典
 			this.staticDictPath = cfg.getDictRoot() + "/"+ Dictionaries.STOP_DICT;
 			this.Words = new ArrayList<String>();
