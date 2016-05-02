@@ -25,7 +25,7 @@ public class Dictionaries {
 	private static Configuration configuration;
 	private Dictionaries() {}
 	
-	public static final String MAIN_DICT = "main.dict";
+	public static final String MAIN_DICT = "main1.dict";
 	public static final String STOP_DICT = "stopword.dict";
 	/**
 	 * 词典初始化

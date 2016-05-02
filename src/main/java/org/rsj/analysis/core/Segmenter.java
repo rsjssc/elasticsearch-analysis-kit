@@ -12,8 +12,9 @@ import org.rsj.analysis.dic.Dictionaries;
 public class Segmenter {
 	private Reader input;
 	private AnalysisContext context;
+//	private SentenceSegment segment;
 	//分词歧义裁决器
-	private Arbitrator arbitrator;
+	private Ambiguity ambiguity;
 	
 	/*
 	 * 当letterStart > -1 时，标识当前的分词器正在处理英文和数字字符
@@ -31,8 +32,9 @@ public class Segmenter {
 	public Segmenter(Reader input){
 		this.input = input;
         this.context = new AnalysisContext();
+//        this.segment = new SentenceSegment();
 //		加载歧义裁决器
-		this.arbitrator = new Arbitrator();
+		this.ambiguity = new Ambiguity();
 		letterStart = -1;letterEnd = -1;
 		lastDictToken = null;
 	}
@@ -85,7 +87,7 @@ public class Segmenter {
 				
 			}
 			//对分词进行歧义处理
-			this.arbitrator.process(context);
+			this.ambiguity.process(context);
 			
 //			System.out.println("/n/nafter process arbitrator!!!let's see the orgTokens:");
 //			System.out.println(context.getOrgListsWhitConflict().size());
@@ -130,9 +132,12 @@ public class Segmenter {
 				if(letterStart != -1) {//已经再处理了数字和字母，则此时碰到了一个字典中词，则输出已经保存的数字或字母
 					outPutLetterOrArabic();
 				}
+//				System.out.println("this char contain word count:"+ tokensForThisChar.size());
 				//将结果加入
 				for (Token token : tokensForThisChar) {
+//					System.out.println("the token is:"+ token.toString());
 					context.addTokenToListWhitConflict(token);
+//					this.segment.addToSentenceSeg(token);
 				}
 				lastDictToken = tokensForThisChar.getFirst();
 			}else if(lastDictToken == null || (context.getCursor() > lastDictToken.getBegin() + lastDictToken.getLength())){//不是字典中的词，且当前指针超过上一个匹配上字典中的词的最短词的结尾，用analyzeLetter处理英文字符和阿拉伯数字
@@ -150,9 +155,25 @@ public class Segmenter {
 			}else {
 				outPutLetterOrArabic();
 			}
+		}else {
+//			//输出句子片段
+//			context.addSentenceSegment(segment);
+//			System.out.println("this is a new sentence segment");
+//			for (Token token : segment.getConflictList()) {
+//				token.setText(String.valueOf(context.getSegmentBuff() , token.getBegin() , token.getLength()));
+//				System.out.println(token.toString());
+//			}
+//			segment = new SentenceSegment();
 		}
-//		else {
-//			context.unlockBuffer();
+//		//判断缓冲区是否已经读完
+//		if(context.isBufferConsumed() && segment.getConflictList().size() != 0){
+//			context.addSentenceSegment(segment);
+//			System.out.println("this is a new sentence segment");
+//			for (Token token : segment.getConflictList()) {
+//				token.setText(String.valueOf(context.getSegmentBuff() , token.getBegin() , token.getLength()));
+//				System.out.println(token.toString());
+//			}
+//			segment = new SentenceSegment();
 //		}
 	}
 	
@@ -168,10 +189,13 @@ public class Segmenter {
 	}
 	
 	public void outPutLetterOrArabic() {
-		if(!isPureAbaric)
-			context.addTokenToListWhitConflict(new Token(context.getBufferOffset() , this.letterStart , this.letterEnd - this.letterStart + 1 , Token.LETTER));
-		else
-			context.addTokenToListWhitConflict(new Token(context.getBufferOffset() , this.letterStart , this.letterEnd - this.letterStart + 1 , Token.ARABIC));
+		if(!isPureAbaric){
+			context.addTokenToListWhitConflict(new Token(context.getBufferOffset() , this.letterStart , this.letterEnd - this.letterStart + 1 , Token.LETTER, "m"));
+//			this.segment.addToSentenceSeg(new Token(context.getBufferOffset() , this.letterStart , this.letterEnd - this.letterStart + 1 , Token.LETTER, "m"));
+		}else {
+			context.addTokenToListWhitConflict(new Token(context.getBufferOffset() , this.letterStart , this.letterEnd - this.letterStart + 1 , Token.ARABIC, "xx"));
+//			this.segment.addToSentenceSeg(new Token(context.getBufferOffset() , this.letterStart , this.letterEnd - this.letterStart + 1 , Token.ARABIC, "xx"));
+		}
 		this.letterStart = -1;
 		this.letterEnd = -1;
 	}

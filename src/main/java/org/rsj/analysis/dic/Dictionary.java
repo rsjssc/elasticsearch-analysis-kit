@@ -26,33 +26,43 @@ public class Dictionary {
 	private String staticDictPath;   //静态词典
 	private String dynamicDictPath;   //动态词典路径
 	private boolean isContainDynamicDict;	//通过N-gram加入新词的新词典需要有定时检查，并重新建立
-	private List<String> Words;
+	private List<Word> wordsWithWordType;
+	private List<String> words;
+	private byte[][] keys;
 	private Map<String,Long> dynamicWords;
 	
 
-	private DoubleArrayTrie dict;	//DAT树
+	private DoubleArrayTrie1 dict;	//DAT树
 	
 	public Dictionary(Configuration cfg, boolean isContainDynamicDict) {
 		this.isContainDynamicDict = isContainDynamicDict;
 		if(isContainDynamicDict) {//加载主词典
 			this.staticDictPath = cfg.getDictRoot() +"/"+ Dictionaries.MAIN_DICT;
 //			this.dynamicDictPath = cfg.getDynamicWordsPath();
-			this.Words = new ArrayList<String>();
-			readFromDictFile(staticDictPath);
+			this.wordsWithWordType = new ArrayList<Word>();
+			readFromDictFileWithWordType(staticDictPath);
 //			readFromDictFile(dynamicDictPath);
 			long start = System.currentTimeMillis();
-			Collections.sort(Words);
+			Collections.sort(wordsWithWordType);
 			System.out.println("sort time: "+ (System.currentTimeMillis() - start));
 			start = System.currentTimeMillis();
-			dict = new DoubleArrayTrie();
-			dict.build(Words);
+			keys = new byte[wordsWithWordType.size()][];
+			for (int i = 0; i < keys.length; i++) {
+				keys[i] = wordsWithWordType.get(i).getWord().getBytes();
+			}
+			dict = new DoubleArrayTrie1();
+			dict.build(keys);
 			System.out.println("build time: "+ (System.currentTimeMillis() - start));
 		}else {//加载停止词典
 			this.staticDictPath = cfg.getDictRoot() + "/"+ Dictionaries.STOP_DICT;
-			this.Words = new ArrayList<String>();
+			this.words = new ArrayList<String>();
 			readFromDictFile(staticDictPath);
-			dict = new DoubleArrayTrie();
-			dict.build(Words);
+			keys = new byte[words.size()][];
+			for (int i = 0; i < keys.length; i++) {
+				keys[i] = words.get(i).getBytes();
+			}
+			dict = new DoubleArrayTrie1();
+			dict.build(keys);
 		}
 	}
 	
@@ -83,12 +93,43 @@ public class Dictionary {
 		}
 	}
 	
+	private void readFromDictFileWithWordType(String Path) {
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new FileReader(Path));
+			String line;
+	        while ((line = reader.readLine()) != null)
+	        {
+	        	String[] t = line.split(" ");
+	        	if(t.length != 2){System.out.println("dict wrong");return;}
+	        	String word = t[0];
+	        	Words.add(word);
+	        	WordsXing.add(t[1]);
+	        }
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if(reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
 	public LinkedList<Token> matchMaxToken(int offset, char[] charArray, int begin) {
-		List<Integer> resultIndex = dict.commonPrefixSearch(charArray, begin);
+		LinkedList<Integer> resultIndex = dict.commonPrefixSearch(charArray, begin);
 		LinkedList<Token> resultTokens = new LinkedList<Token>();
 		for (int index : resultIndex)
         {
-			Token token = new Token(offset, begin, Words.get(index).length(), Token.CNWORD);
+			Token token = new Token(offset, begin, Words.get(index).length(), Token.CNWORD, WordsXing.get(index));
 			resultTokens.add(token);
         }
 		return resultTokens;

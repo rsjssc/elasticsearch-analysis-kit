@@ -39,7 +39,9 @@ public class AnalysisContext {
 	    private boolean buffLocker;
 	    
 	    //原始分词结果集合，未经歧义处理
-	    private LinkedList<ConflictTokensList> orgListsWhitConflict;    
+	    private LinkedList<ConflictTokensList> orgListsWhitConflict;  
+//	    //原始分词结果集合，未经歧义处理
+//	    private LinkedList<SentenceSegment> segments;
 	    //LexemePath位置索引表
 //	    private Map<Integer , LexemePath> pathMap;    
 //	             最终分词结果集
@@ -58,6 +60,7 @@ public class AnalysisContext {
 	    	this.charTypes = new int[BUFF_SIZE];
 	    	this.buffLocker = false;
 	    	this.orgListsWhitConflict = new LinkedList<ConflictTokensList>();
+//	    	this.segments = new LinkedList<SentenceSegment>();
 	    	this.results = new LinkedList<Token>();
 	    }
 	    
@@ -187,6 +190,14 @@ public class AnalysisContext {
 		}
 		
 //		/**
+//		 * 将句子片段添加到
+//		 * @param lexeme
+//		 */
+//		void addSentenceSegment(SentenceSegment segment){
+//			segments.add(segment);
+//		}
+		
+//		/**
 //		 * 添加分词结果路径
 //		 * 路径起始位置 ---> 路径 映射表
 //		 * @param path
@@ -205,6 +216,14 @@ public class AnalysisContext {
 		public LinkedList<ConflictTokensList> getOrgListsWhitConflict(){
 			return this.orgListsWhitConflict;
 		}
+		
+//		/**
+////		 * 返回原始分词结果
+////		 * @return
+////		 */
+//		public LinkedList<SentenceSegment> getOrgListsWhitConflict(){
+//			return this.segments;
+//		}
 		
 		//无歧义的结果加入results
 		public void addToResults(ConflictTokensList conflictList) {

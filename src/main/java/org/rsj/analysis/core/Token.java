@@ -16,6 +16,7 @@ public class Token {
 	private int begin;//相对section起始位置的偏移
 	private int length;//token长度
 	private String text;//token的内容，这里只有在最后输出的时候才会给text赋值，其余时刻为空
+	private String textType;//词性
 	private String tokenType;//token类型
 	
 	public Token(int begin, int length) {
@@ -29,11 +30,12 @@ public class Token {
 		this.tokenType = tokenType;
 	}
 	
-	public Token(int offset, int begin, int length, String tokenType) {
+	public Token(int offset, int begin, int length, String tokenType,String textType) {
 		this.offset = offset;
 		this.begin = begin;
 		this.length = length;
 		this.tokenType = tokenType;
+		this.textType = textType;
 	}
 	
 	public int getBegin() {
@@ -68,10 +70,18 @@ public class Token {
 		StringBuilder strBuilder = new StringBuilder();
 		strBuilder.append(this.getAbsBeginPosition()).append("-").append(this.getAbsEndPosition());
 		strBuilder.append(" : ").append(this.text).append(" : \t");
-		strBuilder.append(this.tokenType);
+		strBuilder.append(this.tokenType).append(" : \t");
+		strBuilder.append(" : ").append(this.textType);
 		return strBuilder.toString();
 	}
 	
+	/**
+	 * token之间的比较函数，-1表示当前的比other小，返回1表示当前位置比other大，0表示相同
+	 * 1、先比较起始位置，
+	 * 2、起始位置相等则表长度，长的词放在前面，所以当前词的长度比other长的时候返回-1
+	 * @param other
+	 * @return
+	 */
 	public int compareTo(Token other) {
 		//起始位置优先
         if(this.begin < other.getBegin()){
@@ -90,4 +100,8 @@ public class Token {
         	return 1;
         }
 	}
+	
+	/**
+	 * ICTPOS3.0词性标记集
+	 */
 }

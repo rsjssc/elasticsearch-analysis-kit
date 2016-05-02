@@ -1,14 +1,7 @@
 package org.rsj.analysis.dic;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class DoubleArrayTrie {
@@ -284,42 +277,6 @@ public class DoubleArrayTrie {
 		return error_;
 	}
 
-	public void open(String fileName) throws IOException {
-		File file = new File(fileName);
-		size = (int) file.length() / UNIT_SIZE;
-		check = new int[size];
-		base = new int[size];
-
-		DataInputStream is = null;
-		try {
-			is = new DataInputStream(new BufferedInputStream(
-					new FileInputStream(file), BUF_SIZE));
-			for (int i = 0; i < size; i++) {
-				base[i] = is.readInt();
-				check[i] = is.readInt();
-			}
-		} finally {
-			if (is != null)
-				is.close();
-		}
-	}
-
-	public void save(String fileName) throws IOException {
-		DataOutputStream out = null;
-		try {
-			out = new DataOutputStream(new BufferedOutputStream(
-					new FileOutputStream(fileName)));
-			for (int i = 0; i < size; i++) {
-				out.writeInt(base[i]);
-				out.writeInt(check[i]);
-			}
-			out.close();
-		} finally {
-			if (out != null)
-				out.close();
-		}
-	}
-
 	public int exactMatchSearch(char[] key) {
 		return exactMatchSearch(key, 0, 0, 0);
 	}
@@ -357,22 +314,22 @@ public class DoubleArrayTrie {
 		return result;
 	}
 
-	public List<Integer> commonPrefixSearch(char[] key) {
+	public LinkedList<Integer> commonPrefixSearch(char[] key) {
 		return commonPrefixSearch(key, 0, 0, 0);
 	}
 	
-	public List<Integer> commonPrefixSearch(char[] key, int pos) {
+	public LinkedList<Integer> commonPrefixSearch(char[] key, int pos) {
 		return commonPrefixSearch(key, pos, 0, 0);
 	}
 
-	public List<Integer> commonPrefixSearch(char[] key, int pos, int len,
+	public LinkedList<Integer> commonPrefixSearch(char[] key, int pos, int len,
 			int nodePos) {
 		if (len <= 0)
 			len = key.length;
 		if (nodePos <= 0)
 			nodePos = 0;
 
-		List<Integer> result = new ArrayList<Integer>();
+		LinkedList<Integer> result = new LinkedList<Integer>();
 
 //		char[] keyChars = key.toCharArray();
 
@@ -385,7 +342,8 @@ public class DoubleArrayTrie {
 			n = base[p];
 
 			if (b == check[p] && n < 0) {
-				result.add(-n - 1);
+//				System.out.println("match!");
+				result.addFirst(-n - 1);
 			}
 
 			p = b + (int) (key[i]) + 1;
@@ -399,7 +357,8 @@ public class DoubleArrayTrie {
 		n = base[p];
 
 		if (b == check[p] && n < 0) {
-			result.add(-n - 1);
+//			System.out.println("match!");
+			result.addFirst(-n - 1);
 		}
 
 		return result;
