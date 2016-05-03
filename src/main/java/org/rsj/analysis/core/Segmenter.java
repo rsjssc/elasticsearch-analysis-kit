@@ -12,7 +12,6 @@ import org.rsj.analysis.dic.Dictionaries;
 public class Segmenter {
 	private Reader input;
 	private AnalysisContext context;
-//	private SentenceSegment segment;
 	//分词歧义裁决器
 	private Ambiguity ambiguity;
 	
@@ -76,24 +75,25 @@ public class Segmenter {
 				reset();
 				
 			}
-			System.out.println("before process arbitrator!let's see the orgTokens:");
-			System.out.println(context.getOrgListsWhitConflict().size());
-			for (ConflictTokensList conflictList : context.getOrgListsWhitConflict()) {
-				System.out.println("this is a new conflict list");
-				for (Token token : conflictList.getConflictList()) {
-					token.setText(String.valueOf(context.getSegmentBuff() , token.getBegin() , token.getLength()));
-					System.out.println(token.toString());
-				}
-				
-			}
+//			System.out.println("before process arbitrator!let's see the orgTokens:");
+//			System.out.println(context.getOrgListsWhitConflict().size());
+//			for (ConflictTokensList conflictList : context.getOrgListsWhitConflict()) {
+//				System.out.println("this is a new conflict list");
+//				for (Token token : conflictList.getConflictList()) {
+			
+//					token.setText(String.valueOf(context.getSegmentBuff() , token.getBegin() , token.getLength()));
+//					System.out.println(token.toString());
+//				}
+//				
+//			}
 			//对分词进行歧义处理
 			this.ambiguity.process(context);
 			
 //			System.out.println("/n/nafter process arbitrator!!!let's see the orgTokens:");
 //			System.out.println(context.getOrgListsWhitConflict().size());
 			System.out.println("and the real result:");
-			System.out.println(context.getResults().size());
-//			context.printlnAllResult();
+//			System.out.println(context.getResults().size());
+			context.printlnAllResult();
 //				
 //				//将分词结果输出到结果集，并处理未切分的单个CJK字符
 //				context.outputToResult();

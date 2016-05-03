@@ -71,4 +71,20 @@ public class CharacterUtil {
 		int index = Arrays.binarySearch(Num_Connector, input);
 		return index >= 0;
 	}
+	
+	public static byte[] charToBytes(char inputChar){
+		byte[] outputByte;
+		if (inputChar < 0x80) {
+			outputByte = new byte[1];
+			outputByte[0] = (byte)inputChar;
+			return outputByte;
+		}else {
+			outputByte = new byte[3];
+			outputByte[0] = (byte)(0xe0 | ((inputChar >> 12)) & 0x0f);
+			outputByte[1] = (byte)(0x80 | ((inputChar >> 6) & 0x3f));
+			outputByte[2] = (byte)(0x80 | (inputChar & 0x3f));
+			return outputByte;
+		} 
+	}
+	
 }

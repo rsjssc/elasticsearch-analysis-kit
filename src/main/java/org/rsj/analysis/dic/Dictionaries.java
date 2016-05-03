@@ -27,6 +27,7 @@ public class Dictionaries {
 	
 	public static final String MAIN_DICT = "main1.dict";
 	public static final String STOP_DICT = "stopword.dict";
+	public static final String Dynamic_DICT = "dynamic.dict";
 	/**
 	 * 词典初始化
 	 * 由于my-analyzer的词典采用Dictionary类的静态方法进行词典初始化
@@ -91,8 +92,8 @@ public class Dictionaries {
 		return atom.MainDict.matchMaxToken(offset, charArray, begin);
 	}
 	
-	public boolean isStopWord(char[] charArray , int begin) {
-		int result = atom.StopWordDict.matchExactly(charArray, begin);
+	public boolean isStopWord(String text) {
+		int result = atom.StopWordDict.matchExactly(text);
 		if(-1 != result)
 			return true;
 		return false;

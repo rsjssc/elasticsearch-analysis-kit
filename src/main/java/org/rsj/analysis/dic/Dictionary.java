@@ -32,17 +32,20 @@ public class Dictionary {
 	private Map<String,Long> dynamicWords;
 	
 
-	private DoubleArrayTrie1 dict;	//DAT树
+	private DoubleArrayTrie dict;	//DAT树
 	
 	public Dictionary(Configuration cfg, boolean isContainDynamicDict) {
 		this.isContainDynamicDict = isContainDynamicDict;
 		if(isContainDynamicDict) {//加载主词典
 			this.staticDictPath = cfg.getDictRoot() +"/"+ Dictionaries.MAIN_DICT;
-//			this.dynamicDictPath = cfg.getDynamicWordsPath();
+//			this.dynamicDictPath = cfg.getDynamicWordsPath();//可以通过配置文件定义动态词典的位置
+			this.dynamicDictPath = cfg.getDictRoot() +"/"+ Dictionaries.Dynamic_DICT;
 			this.wordsWithWordType = new ArrayList<Word>();
-			readFromDictFileWithWordType(staticDictPath);
-//			readFromDictFile(dynamicDictPath);
 			long start = System.currentTimeMillis();
+			readFromDictFileWithWordType(staticDictPath);
+			readFromDictFileWithWordType(dynamicDictPath);
+			System.out.println("read file time: "+ (System.currentTimeMillis() - start));
+			start = System.currentTimeMillis();
 			Collections.sort(wordsWithWordType);
 			System.out.println("sort time: "+ (System.currentTimeMillis() - start));
 			start = System.currentTimeMillis();
@@ -50,7 +53,7 @@ public class Dictionary {
 			for (int i = 0; i < keys.length; i++) {
 				keys[i] = wordsWithWordType.get(i).getWord().getBytes();
 			}
-			dict = new DoubleArrayTrie1();
+			dict = new DoubleArrayTrie();
 			dict.build(keys);
 			System.out.println("build time: "+ (System.currentTimeMillis() - start));
 		}else {//加载停止词典
@@ -61,11 +64,14 @@ public class Dictionary {
 			for (int i = 0; i < keys.length; i++) {
 				keys[i] = words.get(i).getBytes();
 			}
-			dict = new DoubleArrayTrie1();
+			dict = new DoubleArrayTrie();
 			dict.build(keys);
 		}
 	}
-	
+	/**
+	 * 读取没有词性的词典
+	 * @param Path
+	 */
 	private void readFromDictFile(String Path) {
 		BufferedReader reader = null;
 		try {
@@ -73,7 +79,7 @@ public class Dictionary {
 			String line;
 	        while ((line = reader.readLine()) != null)
 	        {
-	        	Words.add(line.trim());
+	        	words.add(line.trim());
 	        }
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -92,7 +98,10 @@ public class Dictionary {
 			}
 		}
 	}
-	
+	/**
+	 * 读取有词性的词典
+	 * @param Path
+	 */
 	private void readFromDictFileWithWordType(String Path) {
 		BufferedReader reader = null;
 		try {
@@ -100,11 +109,8 @@ public class Dictionary {
 			String line;
 	        while ((line = reader.readLine()) != null)
 	        {
-	        	String[] t = line.split(" ");
-	        	if(t.length != 2){System.out.println("dict wrong");return;}
-	        	String word = t[0];
-	        	Words.add(word);
-	        	WordsXing.add(t[1]);
+	        	Word newWord = new Word(line);
+	        	wordsWithWordType.add(newWord);
 	        }
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -129,13 +135,13 @@ public class Dictionary {
 		LinkedList<Token> resultTokens = new LinkedList<Token>();
 		for (int index : resultIndex)
         {
-			Token token = new Token(offset, begin, Words.get(index).length(), Token.CNWORD, WordsXing.get(index));
+			Token token = new Token(offset, begin, wordsWithWordType.get(index).getWord().length(), Token.CNWORD, wordsWithWordType.get(index).getWordType());
 			resultTokens.add(token);
         }
 		return resultTokens;
 	}
 	
-	public int matchExactly(char[] charArray, int begin) {//输入上下文对象
-		return dict.exactMatchSearch(charArray, begin);
+	public int matchExactly(String text) {//输入上下文对象
+		return dict.exactMatchSearch(text);
 	}
 }

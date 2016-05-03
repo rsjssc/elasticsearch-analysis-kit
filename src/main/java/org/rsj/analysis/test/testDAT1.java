@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
+import org.rsj.analysis.core.CharacterUtil;
 import org.rsj.analysis.dic.DoubleArrayTrie1;
 import org.rsj.analysis.dic.Word;
 
@@ -23,6 +24,11 @@ public class testDAT1 {
 //        Set<byte[]> invalidKeys = generateInvalidKeys(10, validKeys);
 		byte[] matchKey = new String("中华人民共和国").getBytes();
 //		byte[] matchKey = new String("abcdefg").getBytes();
+		System.out.println("test : "+Arrays.toString(CharacterUtil.charToBytes('1')));
+		System.out.println("test : "+Arrays.toString(CharacterUtil.charToBytes('号')));
+		System.out.println("test : "+Arrays.toString(CharacterUtil.charToBytes('店')));
+		System.out.println("test : "+Arrays.toString(CharacterUtil.charToBytes('A')));
+		System.out.println("test : "+Arrays.toString(CharacterUtil.charToBytes('型')));
         testDarts(validKeys, matchKey);
 	}
 	
@@ -32,31 +38,32 @@ public class testDAT1 {
 	        byte[][] byteKeys = new byte[Words.size()][];
 	        for (int i = 0; i < byteKeys.length; i++) {
 	        	byteKeys[i] = Words.get(i).getWord().getBytes();
+	        	System.out.println("String: "+Words.get(i).getWord()+", byte size: "+byteKeys[i].length+",  byte[] : "+Arrays.toString(byteKeys[i]));
 			}
 	        long start = System.currentTimeMillis();
 	        
-	        DoubleArrayTrie1 dict = new DoubleArrayTrie1();
-	        dict.build(byteKeys);
-	        System.out.println("bulid time: "+(System.currentTimeMillis() - start));
-	        testDict(dict, byteKeys, null, matchKey);
+//	        DoubleArrayTrie1 dict = new DoubleArrayTrie1();
+//	        dict.build(byteKeys);
+//	        System.out.println("bulid time: "+(System.currentTimeMillis() - start));
+//	        testDict(dict, byteKeys, null, matchKey);
 	    }
 	    
 	    private static void testDict(DoubleArrayTrie1 dict,
 	    byte[][] keys, String[] values, byte[] matchKey) {
 	    	int result = dict.exactMatchSearch(matchKey);
 	    	System.out.println("exactMatch: "+result);
-	    	List<Integer> results = dict.commonPrefixSearch(
-	    			matchKey, 0);
+//	    	List<Integer> results = dict.commonPrefixSearch(
+//	    			matchKey, 0);
 //	    	org.rsj.analysis.dic.DoubleArrayTrie1.Pair<Integer, Integer>[] paris = (Pair<Integer, Integer>[]) results.toArray();
 //	    	for (int i = 0; i < paris.length; i++) {
 //				System.out.println(paris[i].first);
 //			}
-	    	Iterator<Integer> it = results.iterator();
-	    	while (it.hasNext()) {
-	    		Word match = validKeys.get(it.next());
-				System.out.println(match.getWord()+" , "+match.getWordType());
-				
-			}
+//	    	Iterator<Integer> it = results.iterator();
+//	    	while (it.hasNext()) {
+//	    		Word match = validKeys.get(it.next());
+//				System.out.println(match.getWord()+" , "+match.getWordType());
+//				
+//			}
 	    }
 
 //	    private static void testCommonPrefixSearch(DoubleArrayTrie1 dict,

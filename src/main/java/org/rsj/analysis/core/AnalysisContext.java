@@ -19,7 +19,7 @@ public class AnalysisContext {
 		//缓冲区耗尽的临界值
 		private static final int BUFF_EXHAUST_CRITICAL = 100;	
 	 
-		//字符窜读取缓冲
+		//字符读取缓冲
 	    private char[] segmentBuff;
 	    //字符类型数组
 	    private int[] charTypes;
@@ -46,15 +46,7 @@ public class AnalysisContext {
 //	    private Map<Integer , LexemePath> pathMap;    
 //	             最终分词结果集
 	    private LinkedList<Token> results;
-//	    public void printlnAllResult() {
-//	    	Iterator<Token> it = results.iterator();
-//	    	while(it.hasNext())
-//	    		System.out.println(it.next().getText);
-//	    }
-	    public List<Token> getResults() {
-			return results;
-		}
-
+	   
 	    public AnalysisContext(){
 	    	this.segmentBuff = new char[BUFF_SIZE];
 	    	this.charTypes = new int[BUFF_SIZE];
@@ -227,7 +219,7 @@ public class AnalysisContext {
 		
 		//无歧义的结果加入results
 		public void addToResults(ConflictTokensList conflictList) {
-			System.out.println("add no arbitrate list to results");
+//			System.out.println("add no arbitrate list to results");
 //			if(resultIndex < conflictList)
 			for (Token token : conflictList.getConflictList()) {
 				results.add(token);
@@ -307,7 +299,22 @@ public class AnalysisContext {
 //			}
 			return result;
 		}
-		
+		/**
+		 * 打印所有results
+		 */
+		public void printlnAllResult() {
+	    	Iterator<Token> it = results.iterator();
+	    	while(it.hasNext()) {
+	    		Token token = it.next();
+	    		token.setText(String.valueOf(segmentBuff , token.getBegin() , token.getLength()));
+	    		System.out.println(token.toString());
+	    	}
+	    }
+	    public List<Token> getResults() {
+			return results;
+		}
+
+		    
 		/**
 		 * 重置分词上下文状态
 		 */
