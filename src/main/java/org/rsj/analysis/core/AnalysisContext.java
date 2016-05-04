@@ -39,9 +39,10 @@ public class AnalysisContext {
 	    private boolean buffLocker;
 	    
 	    //原始分词结果集合，未经歧义处理
-	    private LinkedList<ConflictTokensList> orgListsWhitConflict;  
+//	    private LinkedList<ConflictTokensList> orgListsWhitConflict;  
 	    //原始句子的分词结果集合，未经歧义处理
-	    private LinkedList<SentenceSegment> segments;
+	    private LinkedList<ConflictTokensList> segments;
+	    private int segmentCount;
 	    //LexemePath位置索引表
 //	    private Map<Integer , LexemePath> pathMap;    
 //	             最终分词结果集
@@ -51,8 +52,9 @@ public class AnalysisContext {
 	    	this.segmentBuff = new char[BUFF_SIZE];
 	    	this.charTypes = new int[BUFF_SIZE];
 	    	this.buffLocker = false;
-	    	this.orgListsWhitConflict = new LinkedList<ConflictTokensList>();
-	    	this.segments = new LinkedList<SentenceSegment>();
+//	    	this.orgListsWhitConflict = new LinkedList<ConflictTokensList>();
+	    	this.segments = new LinkedList<ConflictTokensList>();
+	    	this.segmentCount = 0;
 	    	this.results = new LinkedList<Token>();
 	    	this.addSentenceSegment();
 	    }
@@ -61,7 +63,11 @@ public class AnalysisContext {
 	    	return this.cursor;
 	    }
 	    
-	    char[] getSegmentBuff(){
+	    public int getBuffOffset() {
+			return buffOffset;
+		}
+
+		char[] getSegmentBuff(){
 	    	return this.segmentBuff;
 	    }
 	    
@@ -73,10 +79,6 @@ public class AnalysisContext {
 	    	return this.charTypes[this.cursor];
 	    }
 	    
-	    int getBufferOffset(){
-	    	return this.buffOffset;
-	    }
-		
 	    /**
 	     * 根据context的上下文情况，填充segmentBuff 
 	     * @param reader
@@ -173,14 +175,17 @@ public class AnalysisContext {
 		 * @param lexeme
 		 */
 		void addTokenToListWhitConflict(Token token){
-			ConflictTokensList lastList = orgListsWhitConflict.peekLast();
-			if(lastList != null && lastList.addConflictToken(token)) {
-				
-			}else {
-				ConflictTokensList newTokenList = new ConflictTokensList(token);
-				orgListsWhitConflict.add(newTokenList);
-				segments.getLast().addToSentenceSeg(newTokenList);
-			}
+//			ConflictTokensList lastList = orgListsWhitConflict.peekLast();
+//			if(lastList != null && lastList.addConflictToken(token)) {
+//				
+//			}else {
+//				ConflictTokensList newTokenList = new ConflictTokensList(token);
+//				orgListsWhitConflict.add(newTokenList);
+//				segments.getLast().addToSentenceSeg(newTokenList);
+//			}
+			ConflictTokensList lastList = segments.peekLast();
+			token.setSegmentCount(segmentCount);
+			lastList.addTokenWhitoutCheck(token);
 		}
 		
 		/**
@@ -188,24 +193,30 @@ public class AnalysisContext {
 		 * @param lexeme
 		 */
 		void addSentenceSegment(){
-			SentenceSegment newSegment = new SentenceSegment();
-			segments.add(newSegment);
+//			SentenceSegment newSegment = new SentenceSegment();
+//			segments.add(newSegment);
+			if(segments.peekLast() == null || !segments.peekLast().getConflictList().isEmpty()) {
+				segmentCount++;
+				ConflictTokensList newSegment = new ConflictTokensList(this.segmentCount);
+				segments.add(newSegment);
+			}
+			
 		}
 		
 		
-		/**
-		 * 返回原始分词结果
-		 * @return
-		 */
-		public LinkedList<ConflictTokensList> getOrgListsWhitConflict(){
-			return this.orgListsWhitConflict;
-		}
+//		/**
+//		 * 返回原始分词结果
+//		 * @return
+//		 */
+//		public LinkedList<ConflictTokensList> getOrgListsWhitConflict(){
+//			return this.orgListsWhitConflict;
+//		}
 		
 		/**
 //		 * 返回原始分词结果
 //		 * @return
 //		 */
-		public LinkedList<SentenceSegment> getOrgSentenceSegmentsWhitConflict(){
+		public LinkedList<ConflictTokensList> getOrgSentenceSegments(){
 			return this.segments;
 		}
 		
@@ -295,11 +306,15 @@ public class AnalysisContext {
 		 * 打印所有句子片段
 		 */
 		public void printlnAllSegment() {
-			for(SentenceSegment segment:segments) {
+//			for(SentenceSegment segment:segments) {
+//				System.out.println("this is a segment");
+//				for(ConflictTokensList tokenList: segment.getConflictLists()) {
+//					printTokenList(tokenList.getConflictList());
+//				}
+//			}
+			for(ConflictTokensList segment:segments) {
 				System.out.println("this is a segment");
-				for(ConflictTokensList tokenList: segment.getConflictLists()) {
-					printTokenList(tokenList.getConflictList());
-				}
+				printTokenList(segment.getConflictList());
 			}
 	    }
 		/**
@@ -331,7 +346,9 @@ public class AnalysisContext {
 		 */
 		void reset(){		
 			this.buffLocker = false;
-	        this.orgListsWhitConflict = new LinkedList<ConflictTokensList>();
+//	        this.orgListsWhitConflict = new LinkedList<ConflictTokensList>();
+			this.segments = new LinkedList<ConflictTokensList>();
+			this.segmentCount = 0;
 	        this.available =0;
 	        this.buffOffset = 0;
 	    	this.charTypes = new int[BUFF_SIZE];

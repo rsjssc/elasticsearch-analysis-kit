@@ -8,17 +8,20 @@ import java.util.LinkedList;
 public class ConflictTokensList implements Comparable<ConflictTokensList>{
 	private LinkedList<Token> conflictList;
 	
+	private int segmentCount;
+	
 	//这个冲突链表的的起始和终止位置
 	private int begin;
 	private int end;
 	private int size;
 	
-	public ConflictTokensList() {
+	public ConflictTokensList(int segmentCount) {
 		// TODO Auto-generated constructor stub
 		this.conflictList = new LinkedList<Token>();
 		this.begin = -1;
 		this.end = -1;
 		this.size = 0;
+		this.segmentCount = segmentCount;
 	}
 	
 	public ConflictTokensList(Token token) {
@@ -28,6 +31,7 @@ public class ConflictTokensList implements Comparable<ConflictTokensList>{
 		this.end = token.getBegin() + token.getLength();
 		this.conflictList.add(token);
 		this.size = 1;
+		this.segmentCount = segmentCount;
 	}
 	
 	/**
@@ -87,6 +91,24 @@ public class ConflictTokensList implements Comparable<ConflictTokensList>{
 	public boolean conflictCheck(Token token) {
 		return (token.getBegin() >= this.begin && token.getBegin() < this.end) || 
 				(this.begin >= token.getBegin() && this.begin < token.getBegin() + token.getLength());
+	}
+	/**
+	 * 向ConflictTokenList追加Token,无论是否冲突
+	 * @param token
+	 * @return 
+	 */
+	void addTokenWhitoutCheck(Token token){
+		if(this.conflictList.isEmpty()){
+			this.addToken(token);
+			this.begin = token.getBegin();
+			this.end = token.getBegin() + token.getLength();
+			this.size = 1;
+		}else{
+			this.addToken(token);
+			this.begin = this.conflictList.peekFirst().getBegin();
+			this.end = this.conflictList.peekLast().getBegin()+this.conflictList.peekLast().getLength();
+			this.size++;
+		}
 	}
 	
 	/**
@@ -181,13 +203,16 @@ public class ConflictTokensList implements Comparable<ConflictTokensList>{
 	public int getSize() {
 		return size;
 	}
+	public int getSegmentCount() {
+		return segmentCount;
+	}
 	
 	/**
 	 * 注意：这里是浅拷贝，不过因为我们不会修改token里的值，所以浅拷贝足以
 	 * @return
 	 */
 	ConflictTokensList copy(){
-		ConflictTokensList theCopy = new ConflictTokensList();
+		ConflictTokensList theCopy = new ConflictTokensList(this.segmentCount);
 		theCopy.getConflictList().addAll(this.conflictList);
 		theCopy.begin = this.begin;
 		theCopy.end = this.end;

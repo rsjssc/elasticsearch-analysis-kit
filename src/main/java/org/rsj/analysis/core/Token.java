@@ -18,6 +18,7 @@ public class Token {
 	private String text;//token的内容，这里只有在最后输出的时候才会给text赋值，其余时刻为空
 	private String textType;//词性
 	private String tokenType;//token类型
+	private int segmentCount;//在第几个句子片段
 	
 	public Token(int begin, int length) {
 		this.begin = begin;
@@ -72,6 +73,14 @@ public class Token {
 	
 	public String getTextType() {
 		return this.textType;
+	}
+
+	public int getSegmentCount() {
+		return segmentCount;
+	}
+
+	public void setSegmentCount(int segmentCount) {
+		this.segmentCount = segmentCount;
 	}
 
 	public String toString() {
