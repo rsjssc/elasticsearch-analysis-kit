@@ -12,7 +12,6 @@ import org.rsj.analysis.dic.Dictionaries;
 public class Segmenter {
 	private Reader input;
 	private AnalysisContext context;
-//	private SentenceSegment segment;
 	//分词歧义裁决器
 	private Ambiguity ambiguity;
 	
@@ -32,8 +31,6 @@ public class Segmenter {
 	public Segmenter(Reader input){
 		this.input = input;
         this.context = new AnalysisContext();
-//        this.segment = new SentenceSegment();
-//		加载歧义裁决器
 		this.ambiguity = new Ambiguity();
 		letterStart = -1;letterEnd = -1;
 		lastDictToken = null;
@@ -53,77 +50,6 @@ public class Segmenter {
 		return allResult;
 	}
 
-//	/**
-//	 * 返回一个句子片段的分词结果
-//	 * @return 
-//	 * @throws java.io.IOException
-//	 */
-//	public synchronized List<String> parseSegment()throws IOException{ 
-//		List<String> segmentResult = new ArrayList<String>();
-//		Token l = null;
-//		while((l = context.getNextToken()) == null ){
-//			/*
-//			 * 从reader中读取数据，填充buffer
-//			 * 如果reader是分次读入buffer的，那么buffer要  进行移位处理
-//			 * 移位处理上次读入的但未处理的数据
-//			 */
-//			int available = context.fillBuffer(this.input);
-//			if(available <= 0){
-//				//reader已经读完
-//				context.reset();
-//				return null;
-//				
-//			}else{
-//				//初始化指针
-////				System.out.println("new Buffer read");
-//				context.initCursor();
-////				System.out.println(context.getSegmentBuff());
-////				System.out.println("init anaylze: the cursor is :" + context.getCursor());
-//				do{
-//        			anaylyze(context);//对一次读入的context中的buffer进行分析
-//        			//字符缓冲区接近读完，需要读入新的字符,且当前碰到了一个空闲字符
-//        			if(context.needRefillBuffer()){
-//        				break;
-//        			}
-//   				//向前移动指针
-//				}while(context.moveCursor());
-//				//重置子分词器，为下轮循环进行初始化
-//				reset();
-//				
-//			}
-////			System.out.println("before process arbitrator!let's see the orgTokens:");
-////			System.out.println(context.getOrgListsWhitConflict().size());
-////			for (ConflictTokensList conflictList : context.getOrgListsWhitConflict()) {
-////				System.out.println("this is a new conflict list");
-////				for (Token token : conflictList.getConflictList()) {
-////					token.setText(String.valueOf(context.getSegmentBuff() , token.getBegin() , token.getLength()));
-////					System.out.println(token.toString());
-////				}
-////				
-////			}
-//			//对分词进行歧义处理
-//			context.printlnAllSegment();
-//			this.ambiguity.process(context);
-//			
-////			System.out.println("/n/nafter process arbitrator!!!let's see the orgTokens:");
-////			System.out.println(context.getOrgListsWhitConflict().size());
-////			System.out.println("and the real result:");
-////			System.out.println(context.getResults().size());
-////			context.printlnAllResult();
-////				
-////				//将分词结果输出到结果集，并处理未切分的单个CJK字符
-////				context.outputToResult();
-////				
-////				System.out.println("/n/nafter outputToResult!!!!!,see the real result:");
-////				System.out.println(context.getResults().size());
-////				context.printlnAllResult();
-//			
-//			//记录本次分词的缓冲区位移
-//			context.markBufferOffset();			
-//		}
-//		return segmentResult;
-//	}
-	
 	/**
 	 * 分词，获取下一个词元
 	 * @return Lexeme 词元对象
@@ -267,17 +193,6 @@ public class Segmenter {
 //		}
 	}
 	
-	public void analyzeLetter(AnalysisContext context) {
-		boolean bufferLockFlag = this.processMixLetter(context);
-//		//判断是否锁定缓冲区
-//		if(bufferLockFlag){
-//			context.lockBuffer();
-//		}else{
-//			//对缓冲区解锁
-//			context.unlockBuffer();
-//		}
-	}
-	
 	public void outPutLetterOrArabic() {
 		if(!isPureAbaric){
 			Token token = new Token(context.getBuffOffset() , this.letterStart , this.letterEnd - this.letterStart + 1 , Token.LETTER, "m");
@@ -299,8 +214,7 @@ public class Segmenter {
 	 * @param context
 	 * @return
 	 */
-	private boolean processMixLetter(AnalysisContext context){
-		boolean needLock = false;
+	private void analyzeLetter(AnalysisContext context){
 		if(this.letterStart == -1){//当前的分词器尚未开始处理字符
 			if(CharacterUtil.CHAR_ARABIC == context.getCurrentCharType()
 					|| CharacterUtil.CHAR_ENGLISH == context.getCurrentCharType()){
@@ -326,14 +240,6 @@ public class Segmenter {
 		if(context.isBufferConsumed() && (this.letterStart != -1 && this.letterEnd != -1)){
 			outPutLetterOrArabic();
 		}
-		//判断是否锁定缓冲区
-		if(this.letterStart == -1 && this.letterEnd == -1){
-			//对缓冲区解锁
-			needLock = false;
-		}else{
-			needLock = true;
-		}
-		return needLock;
 	}
 	
 	

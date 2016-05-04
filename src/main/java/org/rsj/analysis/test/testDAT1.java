@@ -8,7 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.rsj.analysis.core.CharacterUtil;
-import org.rsj.analysis.dic.DoubleArrayTrie1;
+import org.rsj.analysis.dic.DoubleArrayTrie;
 import org.rsj.analysis.dic.Word;
 
 public class testDAT1 {
@@ -48,7 +48,7 @@ public class testDAT1 {
 //	        testDict(dict, byteKeys, null, matchKey);
 	    }
 	    
-	    private static void testDict(DoubleArrayTrie1 dict,
+	    private static void testDict(DoubleArrayTrie dict,
 	    byte[][] keys, String[] values, byte[] matchKey) {
 	    	int result = dict.exactMatchSearch(matchKey);
 	    	System.out.println("exactMatch: "+result);

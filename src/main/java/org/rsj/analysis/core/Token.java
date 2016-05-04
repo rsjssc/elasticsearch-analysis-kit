@@ -1,6 +1,5 @@
 package org.rsj.analysis.core;
 
-
 /**
  * 分词得到的基本词元抽象 token
  * @author kit
@@ -81,6 +80,10 @@ public class Token {
 
 	public void setSegmentCount(int segmentCount) {
 		this.segmentCount = segmentCount;
+	}
+	
+	public String getTokenType() {
+		return tokenType;
 	}
 
 	public String toString() {

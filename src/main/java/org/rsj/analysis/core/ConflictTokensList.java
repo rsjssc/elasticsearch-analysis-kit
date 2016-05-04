@@ -1,15 +1,11 @@
 package org.rsj.analysis.core;
 
-import java.util.Iterator;
 import java.util.LinkedList;
-
-
 
 public class ConflictTokensList implements Comparable<ConflictTokensList>{
 	private LinkedList<Token> conflictList;
-	
+	//这个链表属于的片段序号
 	private int segmentCount;
-	
 	//这个冲突链表的的起始和终止位置
 	private int begin;
 	private int end;
@@ -31,62 +27,59 @@ public class ConflictTokensList implements Comparable<ConflictTokensList>{
 		this.end = token.getBegin() + token.getLength();
 		this.conflictList.add(token);
 		this.size = 1;
-		this.segmentCount = segmentCount;
+		this.segmentCount = token.getSegmentCount();
 	}
 	
-	/**
-	 * 冲突链表由小到大排列，起始位置越靠前越小，长度越长越小
-	 * @param token
-	 * @return
-	 */
-	public boolean addConflictToken(Token token) {
-		if(this.conflictList.isEmpty()){
-			this.addToken(token);
-			this.begin = token.getBegin();
-			this.end = token.getBegin() + token.getLength();
-			this.size = 1;
-			return true;
-			
-		}else if(this.conflictCheck(token)){
-			this.addToken(token);
-			if(token.getBegin() + token.getLength() > this.end){
-				this.end = token.getBegin() + token.getLength();
-			}
-			this.size++;
-			return true;
-			
-		}else{
-			return  false;
-			
-		}
-	}
-	
-	/**
-	 * 向ConflictTokenList追加不相交的Token
-	 * @param token
-	 * @return 
-	 */
-	boolean addNotConflictToken(Token token){
-		if(this.conflictList.isEmpty()){
-			this.addToken(token);
-			this.begin = token.getBegin();
-			this.end = token.getBegin() + token.getLength();
-			this.size = 1;
-			return true;
-		}else if(this.conflictCheck(token)){
-			return  false;
-		}else{
-			this.addToken(token);
-//			this.payloadLength += lexeme.getLength();
-//			Lexeme head = this.peekFirst();
-			this.begin = this.conflictList.peekFirst().getBegin();
-//			Lexeme tail = this.peekLast();
-			this.end = this.conflictList.peekLast().getBegin()+this.conflictList.peekLast().getLength();
-			this.size++;
-			return true;
-			
-		}
-	}
+//	/**
+//	 * 冲突链表由小到大排列，起始位置越靠前越小，长度越长越小
+//	 * @param token
+//	 * @return
+//	 */
+//	public boolean addConflictToken(Token token) {
+//		if(this.conflictList.isEmpty()){
+//			this.addToken(token);
+//			this.begin = token.getBegin();
+//			this.end = token.getBegin() + token.getLength();
+//			this.size = 1;
+//			return true;
+//			
+//		}else if(this.conflictCheck(token)){
+//			this.addToken(token);
+//			if(token.getBegin() + token.getLength() > this.end){
+//				this.end = token.getBegin() + token.getLength();
+//			}
+//			this.size++;
+//			return true;
+//			
+//		}else{
+//			return  false;
+//			
+//		}
+//	}
+//	
+//	/**
+//	 * 向ConflictTokenList追加不相交的Token
+//	 * @param token
+//	 * @return 
+//	 */
+//	boolean addNotConflictToken(Token token){
+//		if(this.conflictList.isEmpty()){
+//			this.addToken(token);
+//			this.begin = token.getBegin();
+//			this.end = token.getBegin() + token.getLength();
+//			this.size = 1;
+//			return true;
+//		}else if(this.conflictCheck(token)){
+//			return  false;
+//		}else{
+//			this.addToken(token);
+//			this.begin = this.conflictList.peekFirst().getBegin();
+//			this.end = this.conflictList.peekLast().getBegin()+this.conflictList.peekLast().getLength();
+//			this.size++;
+//			return true;
+//			
+//		}
+//	}
 	
 	public boolean conflictCheck(Token token) {
 		return (token.getBegin() >= this.begin && token.getBegin() < this.end) || 
@@ -217,11 +210,6 @@ public class ConflictTokensList implements Comparable<ConflictTokensList>{
 		theCopy.begin = this.begin;
 		theCopy.end = this.end;
 		theCopy.size = this.size;
-//		Cell c = this.getHead();
-//		while( c != null && c.getLexeme() != null){
-//			theCopy.addLexeme(c.getLexeme());
-//			c = c.getNext();
-//		}
 		return theCopy;
 	}
 
@@ -251,52 +239,8 @@ public class ConflictTokensList implements Comparable<ConflictTokensList>{
 		return pWeight;		
 	}
 	
-//	/*
-//	 * 优先级
-//	 * 覆盖的范围大的List小，即排在前面
-//	 * 范围一样，则比较token个数，token越小越好
-//	 */
-//	public int compareTo(ConflictTokensList o) {//歧义消除的关键算法
-//		//比较有效文本长度
-//		if((this.end - this.begin) > (o.getEnd() - o.getBegin())){
-//			return -1;
-//		}else if((this.end - this.begin) > (o.getEnd() - o.getBegin())){
-//			return 1;
-//		}else{
-//			//比较词元个数，越少越好
-//			if(this.size < o.getSize()){
-//				return -1;
-//			}else if (this.size > o.getSize()){
-//				return 1;
-//			}else{
-//				//根据统计学结论，逆向切分概率高于正向切分，因此位置越靠后的优先
-//				if(this.end > o.getEnd()){
-//					return -1;
-//				}else if(this.end < o.getEnd()){
-//					return 1;
-//				}else{
-//					//词长越平均越好
-//					if(this.getXWeight() > o.getXWeight()){
-//						return -1;
-//					}else if(this.getXWeight() < o.getXWeight()){
-//						return 1;
-//					}else {
-//						//词元位置权重比较
-//						if(this.getPWeight() > o.getPWeight()){
-//							return -1;
-//						}else if(this.getPWeight() < o.getPWeight()){
-//							return 1;
-//						}
-//						
-//					}
-//				}
-//			}
-//		}
-//		return 0;
-//	}
-	
 	/*
-	 * 新的比较方法，由于List的长度都是一样的，所以不用比较覆盖范围和逆向切分
+	 * 比较方法，由于List的长度都是一样的，所以不用比较覆盖范围和逆向切分
 	 * 优先级
 	 * 范围一样，则比较token个数，token越小越好
 	 */

@@ -32,26 +32,18 @@ public class AnalysisContext {
 	    private int cursor;
 	    //最近一次读入的,可处理的字串长度
 		private int available;
-
-		
-		//子分词器锁
-	    //该集合非空，说明分词器在占用segmentBuff,若正在分析，则不能读入，否则读入
-	    private boolean buffLocker;
 	    
 	    //原始分词结果集合，未经歧义处理
 //	    private LinkedList<ConflictTokensList> orgListsWhitConflict;  
 	    //原始句子的分词结果集合，未经歧义处理
 	    private LinkedList<ConflictTokensList> segments;
 	    private int segmentCount;
-	    //LexemePath位置索引表
-//	    private Map<Integer , LexemePath> pathMap;    
 //	             最终分词结果集
 	    private LinkedList<Token> results;
 	   
 	    public AnalysisContext(){
 	    	this.segmentBuff = new char[BUFF_SIZE];
 	    	this.charTypes = new int[BUFF_SIZE];
-	    	this.buffLocker = false;
 //	    	this.orgListsWhitConflict = new LinkedList<ConflictTokensList>();
 	    	this.segments = new LinkedList<ConflictTokensList>();
 	    	this.segmentCount = 0;
@@ -175,14 +167,6 @@ public class AnalysisContext {
 		 * @param lexeme
 		 */
 		void addTokenToListWhitConflict(Token token){
-//			ConflictTokensList lastList = orgListsWhitConflict.peekLast();
-//			if(lastList != null && lastList.addConflictToken(token)) {
-//				
-//			}else {
-//				ConflictTokensList newTokenList = new ConflictTokensList(token);
-//				orgListsWhitConflict.add(newTokenList);
-//				segments.getLast().addToSentenceSeg(newTokenList);
-//			}
 			ConflictTokensList lastList = segments.peekLast();
 			token.setSegmentCount(segmentCount);
 			lastList.addTokenWhitoutCheck(token);
@@ -193,8 +177,6 @@ public class AnalysisContext {
 		 * @param lexeme
 		 */
 		void addSentenceSegment(){
-//			SentenceSegment newSegment = new SentenceSegment();
-//			segments.add(newSegment);
 			if(segments.peekLast() == null || !segments.peekLast().getConflictList().isEmpty()) {
 				segmentCount++;
 				ConflictTokensList newSegment = new ConflictTokensList(this.segmentCount);
@@ -202,7 +184,6 @@ public class AnalysisContext {
 			}
 			
 		}
-		
 		
 //		/**
 //		 * 返回原始分词结果
@@ -229,13 +210,6 @@ public class AnalysisContext {
 			}
 			
 		}
-//		/**
-//		 * 清空原始分词结果
-//		 * @return
-//		 */
-//		public void setOrgTokens(LinkedList<Token> tokens){
-//			this.orgListWhitConflict = tokens;
-//		}
 		
 //		/**
 //		 * 推送分词结果到结果集合
@@ -306,12 +280,6 @@ public class AnalysisContext {
 		 * 打印所有句子片段
 		 */
 		public void printlnAllSegment() {
-//			for(SentenceSegment segment:segments) {
-//				System.out.println("this is a segment");
-//				for(ConflictTokensList tokenList: segment.getConflictLists()) {
-//					printTokenList(tokenList.getConflictList());
-//				}
-//			}
 			for(ConflictTokensList segment:segments) {
 				System.out.println("this is a segment");
 				printTokenList(segment.getConflictList());
@@ -345,7 +313,6 @@ public class AnalysisContext {
 		 * 重置分词上下文状态
 		 */
 		void reset(){		
-			this.buffLocker = false;
 //	        this.orgListsWhitConflict = new LinkedList<ConflictTokensList>();
 			this.segments = new LinkedList<ConflictTokensList>();
 			this.segmentCount = 0;
@@ -355,7 +322,6 @@ public class AnalysisContext {
 	    	this.cursor = 0;
 	    	this.results.clear();
 	    	this.segmentBuff = new char[BUFF_SIZE];
-//	    	this.pathMap.clear();
 		}
 		
 //		/**
