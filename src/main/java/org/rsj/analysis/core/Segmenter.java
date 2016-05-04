@@ -12,6 +12,7 @@ import org.rsj.analysis.dic.Dictionaries;
 public class Segmenter {
 	private Reader input;
 	private AnalysisContext context;
+//	private SentenceSegment segment;
 	//分词歧义裁决器
 	private Ambiguity ambiguity;
 	
@@ -37,6 +38,20 @@ public class Segmenter {
 		letterStart = -1;letterEnd = -1;
 		lastDictToken = null;
 	}
+	
+	/**
+	 * 获取所有分词结果
+	 * @return 
+	 * @throws java.io.IOException
+	 */
+	public synchronized List<String> parseAll()throws IOException{ 
+		List<String> allResult = new ArrayList<String>();
+		Token token ;
+		while ((token = this.next()) != null) {
+			allResult.add(token.getText());
+		}
+		return allResult;
+	}
 
 	/**
 	 * 分词，获取下一个词元
@@ -59,10 +74,10 @@ public class Segmenter {
 				
 			}else{
 				//初始化指针
-				System.out.println("new Buffer read");
+//				System.out.println("new Buffer read");
 				context.initCursor();
-				System.out.println(context.getSegmentBuff());
-				System.out.println("init anaylze: the cursor is :" + context.getCursor());
+//				System.out.println(context.getSegmentBuff());
+//				System.out.println("init anaylze: the cursor is :" + context.getCursor());
 				do{
         			anaylyze(context);//对一次读入的context中的buffer进行分析
         			//字符缓冲区接近读完，需要读入新的字符,且当前碰到了一个空闲字符
@@ -80,20 +95,20 @@ public class Segmenter {
 //			for (ConflictTokensList conflictList : context.getOrgListsWhitConflict()) {
 //				System.out.println("this is a new conflict list");
 //				for (Token token : conflictList.getConflictList()) {
-			
 //					token.setText(String.valueOf(context.getSegmentBuff() , token.getBegin() , token.getLength()));
 //					System.out.println(token.toString());
 //				}
 //				
 //			}
 			//对分词进行歧义处理
+			context.printlnAllSegment();
 			this.ambiguity.process(context);
 			
 //			System.out.println("/n/nafter process arbitrator!!!let's see the orgTokens:");
 //			System.out.println(context.getOrgListsWhitConflict().size());
-			System.out.println("and the real result:");
+//			System.out.println("and the real result:");
 //			System.out.println(context.getResults().size());
-			context.printlnAllResult();
+//			context.printlnAllResult();
 //				
 //				//将分词结果输出到结果集，并处理未切分的单个CJK字符
 //				context.outputToResult();
@@ -156,7 +171,8 @@ public class Segmenter {
 				outPutLetterOrArabic();
 			}
 		}else {
-//			//输出句子片段
+			//context中生成新的输出句子片段
+			context.addSentenceSegment();
 //			context.addSentenceSegment(segment);
 //			System.out.println("this is a new sentence segment");
 //			for (Token token : segment.getConflictList()) {

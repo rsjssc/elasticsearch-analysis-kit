@@ -103,7 +103,6 @@ public class ConflictTokensList implements Comparable<ConflictTokensList>{
 		}else if(this.conflictList.peekFirst().compareTo(token) > 0){//链表中最后一个词比token大，词元接入链表头部
 			conflictList.addFirst(token);
 		}else{	
-			System.out.println("inser");
 			int index = conflictList.size() - 1;
 			while(index > 0 && conflictList.get(index).compareTo(token) > 0) {
 				index--;
@@ -128,6 +127,37 @@ public class ConflictTokensList implements Comparable<ConflictTokensList>{
 		return removeToken;
 		
 	}
+	
+//	public Token peekLastToken() {
+//		Token lastToken = this.conflictList.peekLast();
+//		if(this.conflictList.isEmpty()){
+//			this.begin = -1;
+//			this.end = -1;
+//			this.size = 0;			
+//		}else{		
+//			Token newTail = this.conflictList.peekLast();
+//			this.end = newTail.getBegin() + newTail.getLength();
+//			this.size--;
+//		}
+//		return removeToken;
+//		
+//	}
+//	
+//	public Token peekFirstToken() {
+//		Token removeToken = this.conflictList.pollLast();
+//		if(this.conflictList.isEmpty()){
+//			this.begin = -1;
+//			this.end = -1;
+//			this.size = 0;			
+//		}else{		
+//			Token newTail = this.conflictList.peekLast();
+//			this.end = newTail.getBegin() + newTail.getLength();
+//			this.size--;
+//		}
+//		return removeToken;
+//		
+//	}
+	
 	public LinkedList<Token> getConflictList() {
 		return conflictList;
 	}
@@ -144,6 +174,10 @@ public class ConflictTokensList implements Comparable<ConflictTokensList>{
 		return end;
 	}
 	
+	public int getLength() {
+		return end - begin;
+	}
+	
 	public int getSize() {
 		return size;
 	}
@@ -157,6 +191,7 @@ public class ConflictTokensList implements Comparable<ConflictTokensList>{
 		theCopy.getConflictList().addAll(this.conflictList);
 		theCopy.begin = this.begin;
 		theCopy.end = this.end;
+		theCopy.size = this.size;
 //		Cell c = this.getHead();
 //		while( c != null && c.getLexeme() != null){
 //			theCopy.addLexeme(c.getLexeme());
@@ -166,7 +201,7 @@ public class ConflictTokensList implements Comparable<ConflictTokensList>{
 	}
 
 	/**
-	 * X权重（词元长度积）
+	 * X权重（token长度积）
 	 * @return
 	 */
 	int getXWeight(){
@@ -178,7 +213,7 @@ public class ConflictTokensList implements Comparable<ConflictTokensList>{
 	}
 	
 	/**
-	 * 词元位置权重
+	 * token位置权重
 	 * @return
 	 */
 	int getPWeight(){
@@ -191,53 +226,77 @@ public class ConflictTokensList implements Comparable<ConflictTokensList>{
 		return pWeight;		
 	}
 	
+//	/*
+//	 * 优先级
+//	 * 覆盖的范围大的List小，即排在前面
+//	 * 范围一样，则比较token个数，token越小越好
+//	 */
+//	public int compareTo(ConflictTokensList o) {//歧义消除的关键算法
+//		//比较有效文本长度
+//		if((this.end - this.begin) > (o.getEnd() - o.getBegin())){
+//			return -1;
+//		}else if((this.end - this.begin) > (o.getEnd() - o.getBegin())){
+//			return 1;
+//		}else{
+//			//比较词元个数，越少越好
+//			if(this.size < o.getSize()){
+//				return -1;
+//			}else if (this.size > o.getSize()){
+//				return 1;
+//			}else{
+//				//根据统计学结论，逆向切分概率高于正向切分，因此位置越靠后的优先
+//				if(this.end > o.getEnd()){
+//					return -1;
+//				}else if(this.end < o.getEnd()){
+//					return 1;
+//				}else{
+//					//词长越平均越好
+//					if(this.getXWeight() > o.getXWeight()){
+//						return -1;
+//					}else if(this.getXWeight() < o.getXWeight()){
+//						return 1;
+//					}else {
+//						//词元位置权重比较
+//						if(this.getPWeight() > o.getPWeight()){
+//							return -1;
+//						}else if(this.getPWeight() < o.getPWeight()){
+//							return 1;
+//						}
+//						
+//					}
+//				}
+//			}
+//		}
+//		return 0;
+//	}
+	
 	/*
+	 * 新的比较方法，由于List的长度都是一样的，所以不用比较覆盖范围和逆向切分
 	 * 优先级
-	 * 覆盖的范围大的List小，即排在前面
 	 * 范围一样，则比较token个数，token越小越好
 	 */
 	public int compareTo(ConflictTokensList o) {//歧义消除的关键算法
-		//比较有效文本长度
-		if((this.end - this.begin) > (o.getEnd() - o.getBegin())){
+		//比较词元个数，越少越好
+		if(this.size < o.getSize()){
 			return -1;
-		}else if((this.end - this.begin) > (o.getEnd() - o.getBegin())){
+		}else if (this.size > o.getSize()){
 			return 1;
 		}else{
-			//比较词元个数，越少越好
-			if(this.size < o.getSize()){
+			//词长越平均越好！->改成越不平均越好
+			if(this.getXWeight() < o.getXWeight()){
 				return -1;
-			}else if (this.size > o.getSize()){
+			}else if(this.getXWeight() > o.getXWeight()){
 				return 1;
-			}else{
-				//根据统计学结论，逆向切分概率高于正向切分，因此位置越靠后的优先
-				if(this.end > o.getEnd()){
+			}else {
+				//词元位置权重比较
+				if(this.getPWeight() > o.getPWeight()){
 					return -1;
-				}else if(this.end < o.getEnd()){
+				}else if(this.getPWeight() < o.getPWeight()){
 					return 1;
-				}else{
-					//词长越平均越好
-					if(this.getXWeight() > o.getXWeight()){
-						return -1;
-					}else if(this.getXWeight() < o.getXWeight()){
-						return 1;
-					}else {
-						//词元位置权重比较
-						if(this.getPWeight() > o.getPWeight()){
-							return -1;
-						}else if(this.getPWeight() < o.getPWeight()){
-							return 1;
-						}
-						
-					}
 				}
+				
 			}
 		}
 		return 0;
-	}
-	
-	void printAllTokens() {
-		for (Token token : conflictList) {
-			System.out.println(token);
-		}
 	}
 }

@@ -40,8 +40,8 @@ public class AnalysisContext {
 	    
 	    //原始分词结果集合，未经歧义处理
 	    private LinkedList<ConflictTokensList> orgListsWhitConflict;  
-//	    //原始分词结果集合，未经歧义处理
-//	    private LinkedList<SentenceSegment> segments;
+	    //原始句子的分词结果集合，未经歧义处理
+	    private LinkedList<SentenceSegment> segments;
 	    //LexemePath位置索引表
 //	    private Map<Integer , LexemePath> pathMap;    
 //	             最终分词结果集
@@ -52,8 +52,9 @@ public class AnalysisContext {
 	    	this.charTypes = new int[BUFF_SIZE];
 	    	this.buffLocker = false;
 	    	this.orgListsWhitConflict = new LinkedList<ConflictTokensList>();
-//	    	this.segments = new LinkedList<SentenceSegment>();
+	    	this.segments = new LinkedList<SentenceSegment>();
 	    	this.results = new LinkedList<Token>();
+	    	this.addSentenceSegment();
 	    }
 	    
 	    int getCursor(){
@@ -83,10 +84,10 @@ public class AnalysisContext {
 	     * @throws java.io.IOException
 	     */
 	    int fillBuffer(Reader reader) throws IOException{
-	    	System.out.println("going to read, now the offset is: "+ buffOffset);
+//	    	System.out.println("going to read, now the offset is: "+ buffOffset);
 	    	int readCount = 0;
 	    	if(this.buffOffset == 0){
-	    		System.out.println("this is first time fillBuffer");
+//	    		System.out.println("this is first time fillBuffer");
 	    		//首次读取reader
 	    		readCount = reader.read(segmentBuff);
 	    	}else{
@@ -103,7 +104,7 @@ public class AnalysisContext {
 	    	this.available = readCount;
 	    	//重置当前指针
 	    	this.cursor = 0;
-	    	System.out.println("this time read in word count: "+ readCount);
+//	    	System.out.println("this time read in word count: "+ readCount);
 	    	//不用重置ConflictTokensList因为在歧义处理的时候需要将这个List中所有的冲突List弹出放到results里
 //	    	this.orgTokens = new ArrayList<Token>();
 	    	return readCount;
@@ -178,27 +179,18 @@ public class AnalysisContext {
 			}else {
 				ConflictTokensList newTokenList = new ConflictTokensList(token);
 				orgListsWhitConflict.add(newTokenList);
+				segments.getLast().addToSentenceSeg(newTokenList);
 			}
 		}
 		
-//		/**
-//		 * 将句子片段添加到
-//		 * @param lexeme
-//		 */
-//		void addSentenceSegment(SentenceSegment segment){
-//			segments.add(segment);
-//		}
-		
-//		/**
-//		 * 添加分词结果路径
-//		 * 路径起始位置 ---> 路径 映射表
-//		 * @param path
-//		 */
-//		void addLexemePath(LexemePath path){
-//			if(path != null){
-//				this.pathMap.put(path.getPathBegin(), path);
-//			}
-//		}
+		/**
+		 * 产生新的句子片段SentenceSegment
+		 * @param lexeme
+		 */
+		void addSentenceSegment(){
+			SentenceSegment newSegment = new SentenceSegment();
+			segments.add(newSegment);
+		}
 		
 		
 		/**
@@ -209,13 +201,13 @@ public class AnalysisContext {
 			return this.orgListsWhitConflict;
 		}
 		
-//		/**
-////		 * 返回原始分词结果
-////		 * @return
-////		 */
-//		public LinkedList<SentenceSegment> getOrgListsWhitConflict(){
-//			return this.segments;
-//		}
+		/**
+//		 * 返回原始分词结果
+//		 * @return
+//		 */
+		public LinkedList<SentenceSegment> getOrgSentenceSegmentsWhitConflict(){
+			return this.segments;
+		}
 		
 		//无歧义的结果加入results
 		public void addToResults(ConflictTokensList conflictList) {
@@ -284,32 +276,51 @@ public class AnalysisContext {
 		Token getNextToken(){
 			//从结果集取出，并移除第一个Lexme
 			Token result = this.results.pollFirst();
-//			while(result != null){
+			while(result != null){
 //	    		//数量词合并
 ////	    		this.compound(result);
 //	    		if(Dictionaries.getSingleton().isStopWord(this.segmentBuff ,  result.getBegin() , result.getLength())){
 //	       			//是停止词继续取列表的下一个
 //	    			result = this.results.pollFirst(); 				
 //	    		}else{
-//		 			//不是停止词, 生成lexeme的词元文本,输出
-//	    			//最后真正输出的时候才取到真正的文本
-//		    		result.setLexemeText(String.valueOf(segmentBuff , result.getBegin() , result.getLength()));
-//		    		break;
+		 			//不是停止词, 生成lexeme的词元文本,输出
+	    			//最后真正输出的时候才取到真正的文本
+		    		result.setText(String.valueOf(segmentBuff , result.getBegin() , result.getLength()));
+		    		break;
 //	    		}
-//			}
+			}
 			return result;
 		}
+		/**
+		 * 打印所有句子片段
+		 */
+		public void printlnAllSegment() {
+			for(SentenceSegment segment:segments) {
+				System.out.println("this is a segment");
+				for(ConflictTokensList tokenList: segment.getConflictLists()) {
+					printTokenList(tokenList.getConflictList());
+				}
+			}
+	    }
 		/**
 		 * 打印所有results
 		 */
 		public void printlnAllResult() {
-	    	Iterator<Token> it = results.iterator();
+			printTokenList(results);
+	    }
+		/**
+		 * 打印List中的所有token
+		 * @param list
+		 */
+		public void printTokenList(LinkedList<Token> list) {
+			Iterator<Token> it = list.iterator();
 	    	while(it.hasNext()) {
 	    		Token token = it.next();
 	    		token.setText(String.valueOf(segmentBuff , token.getBegin() , token.getLength()));
 	    		System.out.println(token.toString());
 	    	}
-	    }
+		}
+		
 	    public List<Token> getResults() {
 			return results;
 		}

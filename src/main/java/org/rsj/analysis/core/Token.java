@@ -65,6 +65,14 @@ public class Token {
 	public void setText(String text) {
 		this.text = text;
 	}
+	
+	public String getText() {
+		return this.text;
+	}
+	
+	public String getTextType() {
+		return this.textType;
+	}
 
 	public String toString() {
 		StringBuilder strBuilder = new StringBuilder();
